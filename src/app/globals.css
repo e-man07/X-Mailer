@@ -2,20 +2,276 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+body {
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+.glitch {
+  position: relative;
+  animation: glitch 1s infinite;
+}
+
+.glitch::before,
+.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.glitch::before {
+  left: 2px;
+  text-shadow: -2px 0 #ff00c1;
+  clip: rect(44px, 450px, 56px, 0);
+  animation: glitch-anim 5s infinite linear alternate-reverse;
+}
+
+.glitch::after {
+  left: -2px;
+  text-shadow: -2px 0 #00fff9, 2px 2px #ff00c1;
+  animation: glitch-anim2 1s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-anim {
+  0% {
+    clip: rect(31px, 9999px, 94px, 0);
+  }
+  4.166666667% {
+    clip: rect(91px, 9999px, 43px, 0);
+  }
+  8.333333333% {
+    clip: rect(15px, 9999px, 13px, 0);
+  }
+  12.5% {
+    clip: rect(75px, 9999px, 57px, 0);
+  }
+  16.66666667% {
+    clip: rect(83px, 9999px, 66px, 0);
+  }
+  20.83333333% {
+    clip: rect(63px, 9999px, 24px, 0);
+  }
+  25% {
+    clip: rect(47px, 9999px, 25px, 0);
+  }
+  29.16666667% {
+    clip: rect(67px, 9999px, 52px, 0);
+  }
+  33.33333333% {
+    clip: rect(89px, 9999px, 79px, 0);
+  }
+  37.5% {
+    clip: rect(65px, 9999px, 71px, 0);
+  }
+  41.66666667% {
+    clip: rect(43px, 9999px, 50px, 0);
+  }
+  45.83333333% {
+    clip: rect(63px, 9999px, 87px, 0);
+  }
+  50% {
+    clip: rect(45px, 9999px, 32px, 0);
+  }
+  54.16666667% {
+    clip: rect(62px, 9999px, 70px, 0);
+  }
+  58.33333333% {
+    clip: rect(61px, 9999px, 62px, 0);
+  }
+  62.5% {
+    clip: rect(81px, 9999px, 52px, 0);
+  }
+  66.66666667% {
+    clip: rect(12px, 9999px, 19px, 0);
+  }
+  70.83333333% {
+    clip: rect(42px, 9999px, 68px, 0);
+  }
+  75% {
+    clip: rect(75px, 9999px, 46px, 0);
+  }
+  79.16666667% {
+    clip: rect(67px, 9999px, 66px, 0);
+  }
+  83.33333333% {
+    clip: rect(54px, 9999px, 47px, 0);
+  }
+  87.5% {
+    clip: rect(63px, 9999px, 50px, 0);
+  }
+  91.66666667% {
+    clip: rect(72px, 9999px, 66px, 0);
+  }
+  95.83333333% {
+    clip: rect(66px, 9999px, 20px, 0);
+  }
+  100% {
+    clip: rect(67px, 9999px, 78px, 0);
+  }
+}
+
+@keyframes glitch-anim2 {
+  0% {
+    clip: rect(65px, 9999px, 65px, 0);
+  }
+  4.166666667% {
+    clip: rect(84px, 9999px, 29px, 0);
+  }
+  8.333333333% {
+    clip: rect(75px, 9999px, 19px, 0);
+  }
+  12.5% {
+    clip: rect(32px, 9999px, 54px, 0);
+  }
+  16.66666667% {
+    clip: rect(77px, 9999px, 34px, 0);
+  }
+  20.83333333% {
+    clip: rect(54px, 9999px, 74px, 0);
+  }
+  25% {
+    clip: rect(62px, 9999px, 18px, 0);
+  }
+  29.16666667% {
+    clip: rect(72px, 9999px, 74px, 0);
+  }
+  33.33333333% {
+    clip: rect(75px, 9999px, 76px, 0);
+  }
+  37.5% {
+    clip: rect(28px, 9999px, 31px, 0);
+  }
+  41.66666667% {
+    clip: rect(47px, 9999px, 78px, 0);
+  }
+  45.83333333% {
+    clip: rect(67px, 9999px, 53px, 0);
+  }
+  50% {
+    clip: rect(25px, 9999px, 31px, 0);
+  }
+  54.16666667% {
+    clip: rect(51px, 9999px, 21px, 0);
+  }
+  58.33333333% {
+    clip: rect(89px, 9999px, 85px, 0);
+  }
+  62.5% {
+    clip: rect(84px, 9999px, 34px, 0);
+  }
+  66.66666667% {
+    clip: rect(39px, 9999px, 44px, 0);
+  }
+  70.83333333% {
+    clip: rect(70px, 9999px, 36px, 0);
+  }
+  75% {
+    clip: rect(72px, 9999px, 31px, 0);
+  }
+  79.16666667% {
+    clip: rect(94px, 9999px, 69px, 0);
+  }
+  83.33333333% {
+    clip: rect(42px, 9999px, 65px, 0);
+  }
+  87.5% {
+    clip: rect(4px, 9999px, 9px, 0);
+  }
+  91.66666667% {
+    clip: rect(57px, 9999px, 31px, 0);
+  }
+  95.83333333% {
+    clip: rect(81px, 9999px, 5px, 0);
+  }
+  100% {
+    clip: rect(23px, 9999px, 46px, 0);
+  }
 }

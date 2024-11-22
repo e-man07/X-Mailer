@@ -1,0 +1,20 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Blink {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  uniqueBlinkId String @unique
+  codename    String
+  email       String
+  solanaKey   String
+  imageUrl    String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
