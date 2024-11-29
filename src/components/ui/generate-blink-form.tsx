@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Upload, Lock, Zap, AlertCircle } from 'lucide-react'
+import { Upload, Lock, Zap, AlertCircle, Copy, Check } from 'lucide-react'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
-// Zod Schema for Form Validation
+// Form validation schema
 const blinkFormSchema = z.object({
   codename: z.string()
     .min(3, { message: "Codename must be at least 3 characters" })
@@ -44,6 +44,8 @@ export default function GenerateBlinkForm() {
   const [generatedBlink, setGeneratedBlink] = useState('')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [isCopied, setIsCopied] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
 
   const { 
     control, 
@@ -71,6 +73,12 @@ export default function GenerateBlinkForm() {
         return
       }
       
+      if (file.size > 5 * 1024 * 1024) {
+        setSubmitError('Image must be 5MB or less')
+        e.target.value = ''
+        return
+      }
+      
       const reader = new FileReader()
       reader.onloadend = () => {
         setImagePreview(reader.result as string)
@@ -85,37 +93,44 @@ export default function GenerateBlinkForm() {
   const onSubmit = async (data: BlinkFormData) => {
     try {
       setSubmitError(null)
+      setIsUploading(true)
       let imageUrl = null
       
+      // Handle image upload if present
       if (data.image) {
         try {
+          console.log('Starting image upload...')
           const formData = new FormData()
           formData.append('file', data.image)
-          formData.append('folder', 'blinks')
 
           const uploadResponse = await fetch('/api/cloudinary', {
             method: 'POST',
             body: formData,
           })
 
-          if (!uploadResponse.ok) {
-            throw new Error('Failed to upload image')
-          }
-
           const uploadResult = await uploadResponse.json()
-          imageUrl = uploadResult.url
-
-          if (!imageUrl) {
-            throw new Error('Failed to get image URL from upload')
+          
+          if (!uploadResponse.ok || !uploadResult.success) {
+            throw new Error(uploadResult.error || 'Failed to upload image')
           }
+
+          imageUrl = uploadResult.url
+          console.log('Image uploaded successfully:', imageUrl)
+
         } catch (uploadError) {
           console.error('Image upload error:', uploadError)
-          throw new Error('Failed to upload image. Please try again.')
+          throw new Error(
+            uploadError instanceof Error 
+              ? uploadError.message 
+              : 'Failed to upload image. Please try again.'
+          )
         }
       }
 
-      const uniqueBlinkId = `blink-${nanoid()}`
+      // Generate unique blink ID with full URL
+      const uniqueBlinkId = `https://localhost:3000/api/actions/sendMail/${nanoid()}`
 
+      // Create blink record
       const createBlinkResponse = await fetch('/api/blinks', {
         method: 'POST',
         headers: {
@@ -124,25 +139,43 @@ export default function GenerateBlinkForm() {
         body: JSON.stringify({
           uniqueBlinkId,
           codename: data.codename,
-          email: data.email,
+          email: data.email.toLowerCase(),
           solanaKey: data.solanaKey,
-          description: data.description,
-          imageUrl: imageUrl || undefined
+          description: data.description || '',
+          imageUrl
         }),
       })
 
-      if (!createBlinkResponse.ok) {
-        throw new Error('Failed to create blink')
+      const responseData = await createBlinkResponse.json()
+
+      if (!createBlinkResponse.ok || !responseData.success) {
+        throw new Error(responseData.error || 'Failed to create blink')
       }
 
+      // Reset form and update state
       reset()
       setGeneratedBlink(uniqueBlinkId)
       setImagePreview(null)
       setSubmitError(null)
+
     } catch (error) {
-      console.error('Submission error:', error)
-      setSubmitError(error instanceof Error ? error.message : 'An unexpected error occurred')
+      console.error('Form submission error:', error)
+      setSubmitError(
+        error instanceof Error ? error.message : 'An unexpected error occurred'
+      )
+    } finally {
+      setIsUploading(false)
     }
+  }
+
+  const handleCopyBlink = () => {
+    navigator.clipboard.writeText(generatedBlink).then(() => {
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    }, (err) => {
+      console.error('Failed to copy text: ', err)
+      setSubmitError('Failed to copy blink. Please try again.')
+    })
   }
 
   return (
@@ -161,7 +194,9 @@ export default function GenerateBlinkForm() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div>
-          <Label htmlFor="codename" className="text-green-400 glitch" data-text="Codename">Codename</Label>
+          <Label htmlFor="codename" className="text-green-400 glitch" data-text="Codename">
+            Codename
+          </Label>
           <Controller
             name="codename"
             control={control}
@@ -237,6 +272,7 @@ export default function GenerateBlinkForm() {
                 <div className="mt-1 flex items-center space-x-4">
                   <Input 
                     {...field}
+                    value={undefined}
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
@@ -291,12 +327,12 @@ export default function GenerateBlinkForm() {
         <Button 
           type="submit" 
           className="w-full bg-green-500 text-black hover:bg-green-600 focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 transition-all duration-200 ease-in-out transform hover:scale-105"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isUploading}
         >
-          {isSubmitting ? (
+          {isSubmitting || isUploading ? (
             <>
               <Zap className="animate-pulse mr-2" />
-              Encrypting...
+              {isUploading ? 'Uploading...' : 'Encrypting...'}
             </>
           ) : (
             <>
@@ -314,7 +350,15 @@ export default function GenerateBlinkForm() {
           className="mt-8 p-4 bg-green-500 bg-opacity-20 border border-green-500 text-green-400 rounded-md"
         >
           <p className="font-bold mb-2 glitch" data-text="Your Encrypted Blink:">Your Encrypted Blink:</p>
-          <code className="block p-2 bg-black bg-opacity-50 text-green-500 rounded">{generatedBlink}</code>
+          <div className="flex items-center space-x-2">
+            <code className="block p-2 bg-black bg-opacity-50 text-green-500 rounded flex-grow">{generatedBlink}</code>
+            <Button
+              onClick={handleCopyBlink}
+              className="bg-green-500 text-black hover:bg-green-600 focus:ring-2 focus:ring-green-400 focus:ring-opacity-50"
+            >
+              {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            </Button>
+          </div>
         </motion.div>
       )}
     </motion.div>

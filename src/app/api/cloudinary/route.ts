@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
+import { UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 
-// Configure Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_NAME,
+  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
@@ -12,59 +12,62 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    const folder = formData.get('folder') as string || 'blinks';
-
+    
     if (!file) {
       return NextResponse.json(
-        { error: 'No file provided' },
+        { success: false, error: 'No file provided' },
         { status: 400 }
       );
     }
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      return NextResponse.json(
-        { error: 'File must be an image' },
-        { status: 400 }
-      );
-    }
-
-    // Convert file to base64
+    // Converting file to buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const fileStr = `data:${file.type};base64,${buffer.toString('base64')}`;
 
-    // Upload to Cloudinary
-    const uploadResponse = await cloudinary.uploader.upload(fileStr, {
-      folder: folder,
-      resource_type: 'auto',
-      allowed_formats: ['jpg', 'png', 'gif', 'webp', 'jpeg'], // Add or remove formats as needed
-      transformation: [
-        { quality: 'auto:good' }, // Optimize quality
-        { fetch_format: 'auto' }, // Auto-select best format
-        { width: 1200, crop: 'limit' } // Limit max width while maintaining aspect ratio
-      ]
+    // Uploading to Cloudinary
+    const uploadResponse = await new Promise<UploadApiResponse>((resolve, reject) => {
+      cloudinary.uploader.upload(
+        fileStr,
+        {
+          folder: 'blinks',
+          resource_type: 'auto',
+          allowed_formats: ['jpg', 'png', 'gif', 'webp', 'jpeg'],
+          transformation: [
+            { quality: 'auto:good' },
+            { fetch_format: 'auto' },
+            { width: 1200, crop: 'limit' }
+          ]
+        },
+        (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
+          if (error) reject(error);
+          else if (result) resolve(result);
+          else reject(new Error('No result from upload'));
+        }
+      );
     });
 
     return NextResponse.json({
-      url: uploadResponse.secure_url,
-      public_id: uploadResponse.public_id
+      success: true,
+      url: uploadResponse.secure_url
     });
 
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('Cloudinary upload error:', error);
     return NextResponse.json(
-      { error: 'Failed to upload image' },
+      { 
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to upload image'
+      },
       { status: 500 }
     );
   }
 }
 
-// Optional: Set the maximum file size
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '5mb' // Adjust this value as needed
+      sizeLimit: '5mb'
     }
   }
 };

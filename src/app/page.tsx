@@ -1,19 +1,17 @@
 'use client'
 
-import { useState, ReactNode, useEffect } from 'react'
+import { useState, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TypeAnimation } from 'react-type-animation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Mail, Twitter, Zap, Menu, X, Lock, Shield, Globe, Divide } from 'lucide-react'
-import Link from 'next/link'
+import { Twitter, Zap, Menu, X, Lock, Shield, Globe } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import HackerLoader from '@/components/ui/HackerLoader'
 
-interface NavLinkProps {
+interface NavLinkProps extends React.HTMLAttributes<HTMLAnchorElement> {
   href: string;
   children: ReactNode;
-  [key: string]: any;
 }
 
 function NavLink({ href, children, ...props }: NavLinkProps) {
@@ -27,10 +25,9 @@ function NavLink({ href, children, ...props }: NavLinkProps) {
     </a>
   )
 }
-
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [glitchText, setGlitchText] = useState('EmailBlink')
+  const [glitchText] = useState('EmailBlink')
   const [showLoader, setShowLoader] = useState(false)
   const router = useRouter()
 
