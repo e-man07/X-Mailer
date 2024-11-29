@@ -128,7 +128,7 @@ export default function GenerateBlinkForm() {
       }
 
       // Generate unique blink ID with full URL
-      const uniqueBlinkId = `https://localhost:3000/api/actions/sendMail/${nanoid()}`
+      const uniqueBlinkId = `https://email-blink.vercel.app/api/actions/sendMail/${nanoid()}`
 
       // Create blink record
       const createBlinkResponse = await fetch('/api/blinks', {
