@@ -8,13 +8,27 @@ generator client {
 }
 
 model Blink {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  uniqueBlinkId String @unique
-  codename    String
-  email       String
-  solanaKey   String
-  imageUrl    String?
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  uniqueBlinkId String   @unique
+  codename      String
+  email         String
+  solanaKey     String
+  askingFee     Float      // Add this field
+  imageUrl      String?
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  mails         Mail[]
+}
+
+model Mail {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  senderEmail  String
+  senderName   String
+  messageBody  String
+  creatorEmail String
+  blink        Blink    @relation(fields: [blinkId], references: [id])
+  blinkId      String   @db.ObjectId
 }

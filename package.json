@@ -8,8 +8,6 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint"
-    
-    
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -26,6 +24,7 @@
     "mongodb": "^6.10.0",
     "nanoid": "^5.0.8",
     "next": "15.0.3",
+    "nodemailer": "^6.9.16",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.2",
@@ -37,6 +36,7 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "@types/nodemailer": "^6.4.17",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@typescript-eslint/eslint-plugin": "^8.16.0",

@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState } from 'react'
@@ -10,27 +11,31 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { Upload, Lock, Zap, AlertCircle, Copy, Check } from 'lucide-react'
+import { Twitter, Upload, Lock, Zap, AlertCircle, Copy, Check } from 'lucide-react'
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
-// Form validation schema
+
 const blinkFormSchema = z.object({
   codename: z.string()
     .min(3, { message: "Codename must be at least 3 characters" })
     .max(20, { message: "Codename cannot exceed 20 characters" }),
-  
+
   email: z.string()
     .email({ message: "Invalid email address" }),
-  
+
   solanaKey: z.string()
-    .regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, { 
-      message: "Invalid Solana public key" 
+    .regex(/^[1-9A-HJ-NP-Za-km-z]{32,44}$/, {
+      message: "Invalid Solana public key"
     }),
-  
+
+  askingFee: z.number()
+    .min(0, { message: "Asking fee cannot be negative" })
+    .max(100, { message: "Asking fee cannot exceed 100 SOL" }),
+
   description: z.string()
     .max(500, { message: "Description cannot exceed 500 characters" })
     .optional(),
-  
+
   image: z.instanceof(File)
     .optional()
     .refine((file) => !file || file.size <= 5 * 1024 * 1024, {
@@ -47,17 +52,18 @@ export default function GenerateBlinkForm() {
   const [isCopied, setIsCopied] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
 
-  const { 
-    control, 
-    handleSubmit, 
-    formState: { errors, isSubmitting }, 
-    reset 
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset
   } = useForm<BlinkFormData>({
     resolver: zodResolver(blinkFormSchema),
     defaultValues: {
       codename: '',
       email: '',
       solanaKey: '',
+      askingFee: 0,
       description: ''
     }
   })
@@ -66,19 +72,19 @@ export default function GenerateBlinkForm() {
     const file = e.target.files?.[0]
     if (file) {
       setSubmitError(null)
-      
+
       if (!file.type.startsWith('image/')) {
         setSubmitError('Please upload only image files')
         e.target.value = ''
         return
       }
-      
+
       if (file.size > 5 * 1024 * 1024) {
         setSubmitError('Image must be 5MB or less')
         e.target.value = ''
         return
       }
-      
+
       const reader = new FileReader()
       reader.onloadend = () => {
         setImagePreview(reader.result as string)
@@ -95,8 +101,8 @@ export default function GenerateBlinkForm() {
       setSubmitError(null)
       setIsUploading(true)
       let imageUrl = null
-      
-      // Handle image upload if present
+
+
       if (data.image) {
         try {
           console.log('Starting image upload...')
@@ -109,7 +115,7 @@ export default function GenerateBlinkForm() {
           })
 
           const uploadResult = await uploadResponse.json()
-          
+
           if (!uploadResponse.ok || !uploadResult.success) {
             throw new Error(uploadResult.error || 'Failed to upload image')
           }
@@ -120,17 +126,17 @@ export default function GenerateBlinkForm() {
         } catch (uploadError) {
           console.error('Image upload error:', uploadError)
           throw new Error(
-            uploadError instanceof Error 
-              ? uploadError.message 
+            uploadError instanceof Error
+              ? uploadError.message
               : 'Failed to upload image. Please try again.'
           )
         }
       }
 
-      // Generate unique blink ID with full URL
-      const uniqueBlinkId = `https://email-blink.vercel.app/api/actions/sendMail/${nanoid()}`
 
-      // Create blink record
+      const uniqueBlinkId = `${nanoid()}`
+
+
       const createBlinkResponse = await fetch('/api/blinks', {
         method: 'POST',
         headers: {
@@ -141,6 +147,7 @@ export default function GenerateBlinkForm() {
           codename: data.codename,
           email: data.email.toLowerCase(),
           solanaKey: data.solanaKey,
+          askingFee: Number(data.askingFee),
           description: data.description || '',
           imageUrl
         }),
@@ -152,7 +159,7 @@ export default function GenerateBlinkForm() {
         throw new Error(responseData.error || 'Failed to create blink')
       }
 
-      // Reset form and update state
+
       reset()
       setGeneratedBlink(uniqueBlinkId)
       setImagePreview(null)
@@ -169,7 +176,7 @@ export default function GenerateBlinkForm() {
   }
 
   const handleCopyBlink = () => {
-    navigator.clipboard.writeText(generatedBlink).then(() => {
+    navigator.clipboard.writeText(`http://localhost:3000/api/actions/sendMail/${generatedBlink}`).then(() => {
       setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
     }, (err) => {
@@ -178,8 +185,18 @@ export default function GenerateBlinkForm() {
     })
   }
 
+  const handleTwitterShare = () => {
+
+    const tweetText = encodeURIComponent(`Check out my X-Mailer link!`);
+    const shareUrl = `http://localhost:3000/api/actions/sendMail/${generatedBlink}`;
+    const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`;
+
+
+    window.open(twitterShareUrl, '_blank');
+  };
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
@@ -202,7 +219,7 @@ export default function GenerateBlinkForm() {
             control={control}
             render={({ field }) => (
               <div>
-                <Input 
+                <Input
                   {...field}
                   className="bg-black bg-opacity-50 text-green-500 border-green-500 mt-1 focus:ring-green-500 focus:border-green-500"
                   placeholder="Enter your codename"
@@ -224,7 +241,7 @@ export default function GenerateBlinkForm() {
             control={control}
             render={({ field }) => (
               <div>
-                <Input 
+                <Input
                   {...field}
                   type="email"
                   className="bg-black bg-opacity-50 text-green-500 border-green-500 mt-1 focus:ring-green-500 focus:border-green-500"
@@ -247,7 +264,7 @@ export default function GenerateBlinkForm() {
             control={control}
             render={({ field }) => (
               <div>
-                <Input 
+                <Input
                   {...field}
                   className="bg-black bg-opacity-50 text-green-500 border-green-500 mt-1 focus:ring-green-500 focus:border-green-500"
                   placeholder="Enter your Solana public key address"
@@ -255,6 +272,41 @@ export default function GenerateBlinkForm() {
                 {errors.solanaKey && (
                   <p className="text-red-500 mt-1">{errors.solanaKey.message}</p>
                 )}
+              </div>
+            )}
+          />
+        </div>
+
+        <div>
+          <Label
+            htmlFor="askingFee"
+            className="text-green-400 glitch"
+            data-text="Asking Fee (SOL)"
+          >
+            Asking Fee (SOL)
+          </Label>
+          <Controller
+            name="askingFee"
+            control={control}
+            render={({ field: { onChange, value, ...field } }) => (
+              <div>
+                <Input
+                  {...field}
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="100"
+                  value={value}
+                  onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+                  className="bg-black bg-opacity-50 text-green-500 border-green-500 mt-1 focus:ring-green-500 focus:border-green-500"
+                  placeholder="Enter amount in SOL"
+                />
+                {errors.askingFee && (
+                  <p className="text-red-500 mt-1">{errors.askingFee.message}</p>
+                )}
+                <p className="text-green-400/70 text-sm mt-1">
+                  Amount in SOL that users need to pay to send you a message
+                </p>
               </div>
             )}
           />
@@ -270,7 +322,7 @@ export default function GenerateBlinkForm() {
             render={({ field: { onChange, value, ...field } }) => (
               <div>
                 <div className="mt-1 flex items-center space-x-4">
-                  <Input 
+                  <Input
                     {...field}
                     value={undefined}
                     type="file"
@@ -289,9 +341,9 @@ export default function GenerateBlinkForm() {
                 )}
                 {imagePreview && (
                   <div className="mt-2">
-                    <img 
-                      src={imagePreview} 
-                      alt="Image Preview" 
+                    <img
+                      src={imagePreview}
+                      alt="Image Preview"
                       className="max-w-[200px] max-h-[200px] rounded-md object-cover"
                     />
                   </div>
@@ -310,7 +362,7 @@ export default function GenerateBlinkForm() {
             control={control}
             render={({ field }) => (
               <div>
-                <Textarea 
+                <Textarea
                   {...field}
                   className="bg-black bg-opacity-50 text-green-500 border-green-500 mt-1 focus:ring-green-500 focus:border-green-500"
                   placeholder="Describe your mission (optional)"
@@ -324,8 +376,8 @@ export default function GenerateBlinkForm() {
           />
         </div>
 
-        <Button 
-          type="submit" 
+        <Button
+          type="submit"
           className="w-full bg-green-500 text-black hover:bg-green-600 focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 transition-all duration-200 ease-in-out transform hover:scale-105"
           disabled={isSubmitting || isUploading}
         >
@@ -344,19 +396,27 @@ export default function GenerateBlinkForm() {
       </form>
 
       {generatedBlink && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="mt-8 p-4 bg-green-500 bg-opacity-20 border border-green-500 text-green-400 rounded-md"
         >
           <p className="font-bold mb-2 glitch" data-text="Your Encrypted Blink:">Your Encrypted Blink:</p>
           <div className="flex items-center space-x-2">
-            <code className="block p-2 bg-black bg-opacity-50 text-green-500 rounded flex-grow">{generatedBlink}</code>
+            <code className="block p-2 bg-black bg-opacity-50 text-green-500 rounded flex-grow break-all min-h-[2.5rem] flex items-center">
+              http://localhost:3000/api/actions/sendMail/{generatedBlink}
+            </code>
             <Button
               onClick={handleCopyBlink}
-              className="bg-green-500 text-black hover:bg-green-600 focus:ring-2 focus:ring-green-400 focus:ring-opacity-50"
+              className="bg-green-500 text-black hover:bg-green-600 focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 flex-shrink-0 h-full"
             >
               {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            </Button>
+            <Button
+              onClick={handleTwitterShare}
+              className="bg-blue-400 text-white hover:bg-blue-500 focus:ring-2 focus:ring-blue-300 focus:ring-opacity-50 flex-shrink-0 h-full"
+            >
+              <Twitter className="h-4 w-4" />
             </Button>
           </div>
         </motion.div>

@@ -4,10 +4,10 @@ import { useState, ReactNode } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { TypeAnimation } from 'react-type-animation'
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Twitter, Zap, Menu, X, Lock, Shield, Globe } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import HackerLoader from '@/components/ui/HackerLoader'
+import React from 'react'
 
 interface NavLinkProps extends React.HTMLAttributes<HTMLAnchorElement> {
   href: string;
@@ -16,9 +16,9 @@ interface NavLinkProps extends React.HTMLAttributes<HTMLAnchorElement> {
 
 function NavLink({ href, children, ...props }: NavLinkProps) {
   return (
-    <a 
-      href={href} 
-      className="text-green-300 hover:text-green-500 transition-colors" 
+    <a
+      href={href}
+      className="text-green-300 hover:text-green-500 transition-colors"
       {...props}
     >
       {children}
@@ -27,9 +27,11 @@ function NavLink({ href, children, ...props }: NavLinkProps) {
 }
 export default function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [glitchText] = useState('EmailBlink')
+  const [glitchText] = useState('X-Mailer')
   const [showLoader, setShowLoader] = useState(false)
   const router = useRouter()
+  const [email, setEmail] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -44,6 +46,25 @@ export default function LandingPage() {
   const handleLoaderComplete = () => {
     router.push('/generate-blink')
   }
+
+  const handleSubscribe = () => {
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (emailRegex.test(email)) {
+
+      setShowSuccess(true);
+
+
+      setTimeout(() => {
+        setShowSuccess(false);
+        setEmail('');
+      }, 3000);
+    } else {
+
+      alert('Access Denied: Invalid Matrix Coordinates');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-green-500 font-mono">
@@ -68,7 +89,7 @@ export default function LandingPage() {
               <header className="fixed top-0 left-0 right-0 z-40 bg-black bg-opacity-90 backdrop-blur-md border-b border-green-500">
                 <div className="container mx-auto px-4 py-4">
                   <nav className="flex items-center justify-between">
-                    <motion.div 
+                    <motion.div
                       className="text-2xl font-bold glitch"
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -80,14 +101,17 @@ export default function LandingPage() {
                     <div className="hidden md:flex space-x-4">
                       <NavLink href="#how-it-works">How It Works</NavLink>
                       <NavLink href="#features">Features</NavLink>
-                      <NavLink href="#get-started">Get Started</NavLink>
+                      <NavLink href="generate-blink">Get Started</NavLink>
                     </div>
                     <div className="flex items-center space-x-4">
-                      {/*<Button variant="outline" className="hidden md:inline-flex text-green-500 border-green-500 hover:bg-green-500 hover:text-black">
-                        Sign In
-                      </Button> */}
-                      <Button 
-                        variant="ghost" 
+                      <NavLink href="analytics-dashboard">
+                        <Button variant="outline" className="hidden md:inline-flex text-green-500 border-green-500 hover:bg-green-500 hover:text-black">
+                          Dashboard
+                        </Button>
+                      </NavLink>
+
+                      <Button
+                        variant="ghost"
                         size="icon"
                         className="md:hidden text-green-500"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -96,10 +120,26 @@ export default function LandingPage() {
                       </Button>
                     </div>
                   </nav>
+
+                  {/* Mobile Menu */}
+                  {isMenuOpen && (
+                    <div className="absolute top-16 right-4 bg-black border border-green-500 rounded-lg shadow-lg md:hidden">
+                      <nav className="flex flex-col space-y-2 p-4">
+                        <NavLink href="#how-it-works">How It Works</NavLink>
+                        <NavLink href="#features">Features</NavLink>
+                        <NavLink href="generate-blink">Get Started</NavLink>
+                        <NavLink href="analytics-dashboard">
+                          <Button variant="outline" className="w-full text-green-500 border-green-500 hover:bg-green-500 hover:text-black">
+                            Dashboard
+                          </Button>
+                        </NavLink>
+                      </nav>
+                    </div>
+                  )}
                 </div>
               </header>
 
-              <main className="container mx-auto px-4 pt-24">
+              <main className="w-full px-4 pt-24">
                 <motion.section className="text-center py-20" {...fadeIn}>
                   <h1 className="text-4xl md:text-6xl font-bold mb-6 glitch" data-text="Send Emails Directly from">
                     Send Emails Directly from{' '}
@@ -119,7 +159,7 @@ export default function LandingPage() {
                   <p className="text-xl text-gray-400 mb-8 max-w-2xl mx-auto">
                     Generate an encrypted email blink, post it on Twitter, and let anyone send you a secure email with just a click.
                   </p>
-                  <Button 
+                  <Button
                     className="bg-green-500 hover:bg-green-600 text-black px-8 py-3 rounded-full text-lg"
                     onClick={handleInitiateSequence}
                   >
@@ -137,8 +177,8 @@ export default function LandingPage() {
                           "Deploy the blink on your Twitter profile or in a tweet",
                           "Followers activate the blink to send you a secure email"
                         ].map((step, index) => (
-                          <motion.li 
-                            key={index} 
+                          <motion.li
+                            key={index}
                             className="flex items-center gap-4 "
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -152,7 +192,7 @@ export default function LandingPage() {
                         ))}
                       </ol>
                     </div>
-                    <motion.div 
+                    <motion.div
                       className="bg-gradient-to-br from-green-500 to-blue-500 rounded-lg p-1"
                       whileHover={{ scale: 1.05 }}
                       transition={{ type: "spring", stiffness: 300 }}
@@ -164,8 +204,8 @@ export default function LandingPage() {
                         </div>
                         <p className="mb-4">Secure channel established. Send encrypted email:</p>
                         <div className="bg-green-500 text-black px-4 py-2 rounded-md inline-flex items-center">
-                          <Lock className="mr-2" /> 
-                          <span>email.blink/3nc0d3d</span>
+                          <Lock className="mr-2" />
+                          <span>x-mailer.blink/3nc0d3d</span>
                         </div>
                       </div>
                     </motion.div>
@@ -180,7 +220,7 @@ export default function LandingPage() {
                       { icon: Shield, title: "Stealth Mode", description: "Keep your true email address hidden from prying eyes." },
                       { icon: Globe, title: "Decentralized Network", description: "Leverage the power of distributed systems for ultimate privacy." }
                     ].map((feature, index) => (
-                      <motion.div 
+                      <motion.div
                         key={index}
                         className="bg-black rounded-lg p-6 border border-green-500"
                         whileHover={{ y: -10, boxShadow: '0 0 20px rgba(0, 255, 0, 0.3)' }}
@@ -196,25 +236,46 @@ export default function LandingPage() {
 
                 <motion.section id="get-started" className="py-20" {...fadeIn}>
                   <div className="bg-black rounded-lg p-8 text-center border border-green-500">
-                    <h2 className="text-3xl font-bold mb-4 glitch" data-text="Initialize Sequence">Initialize Sequence</h2>
-                    <p className="text-xl mb-6">Enter the matrix and subscribe to our EmailBlink now.</p>
-                    <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                      <Input 
-                        type="email" 
-                        placeholder="Enter your email" 
-                        className="bg-black text-green-500 border-green-500 px-4 py-2 rounded-md max-w-xs w-full placeholder-green-700"
+                    <h2 className="text-3xl font-bold mb-4 glitch" data-text="Initialize Sequence">
+                      Initialize Sequence
+                    </h2>
+                    <p className="text-xl mb-6 text-green-400">Enter the matrix and subscribe to X-Mailer now.</p>
+
+                    <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4 relative">
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter matrix coordinates"
+                        className="bg-black text-green-500 border-green-500 px-4 py-2 rounded-md max-w-xs w-full placeholder-green-700 border-2 focus:outline-none focus:ring-2 focus:ring-green-500"
                       />
-                      <Button className="bg-green-500 text-black px-6 py-2 rounded-md hover:bg-green-600">
-                        Subscribe EmailBlink
-                      </Button>
+                      <button
+                        onClick={handleSubscribe}
+                        className="bg-green-500 text-black px-6 py-2 rounded-md hover:bg-green-600"
+                      >
+                        Subscribe to X-Mailer
+                      </button>
+
+                      <AnimatePresence>
+                        {showSuccess && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            className="absolute top-full mt-4 text-green-300 font-mono text-sm"
+                          >
+                            ✓ Matrix Coordinates Synchronized // X-Mailer Protocol Activated
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
                 </motion.section>
-              </main>
+                </main>
 
-              <footer className="container mx-auto px-4 py-8 mt-12 text-center text-gray-400 border-t border-green-500">
-                <p>&copy; 2024 EmailBlink. All rights reserved. | Encrypted with 256-bit AES</p>
-              </footer>
+                <footer className="container mx-auto px-4 py-8 mt-12 text-center text-gray-400 border-t border-green-500">
+                  <p>&copy; 2024 X-Mailer. All rights reserved. | Encrypted with Solana-Blinks</p>
+                </footer>
             </div>
           </motion.div>
         )}
