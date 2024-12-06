@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
-import { UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
+import { Readable } from 'stream';
 
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -8,11 +8,26 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Utility to convert browser's ReadableStream to Node.js Readable
+function toNodeStream(readableStream: ReadableStream<Uint8Array>): Readable {
+  const reader = readableStream.getReader();
+  return new Readable({
+    async read() {
+      const { done, value } = await reader.read();
+      if (done) {
+        this.push(null); // End of stream
+      } else {
+        this.push(Buffer.from(value));
+      }
+    },
+  });
+}
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;
-    
+
     if (!file) {
       return NextResponse.json(
         { success: false, error: 'No file provided' },
@@ -20,44 +35,30 @@ export async function POST(request: Request) {
       );
     }
 
-    // Converting file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    const fileStr = `data:${file.type};base64,${buffer.toString('base64')}`;
+    const stream = toNodeStream(file.stream()); // Convert file.stream() to Node.js Readable
 
-    // Uploading to Cloudinary
-    const uploadResponse = await new Promise<UploadApiResponse>((resolve, reject) => {
-      cloudinary.uploader.upload(
-        fileStr,
-        {
-          folder: 'blinks',
-          resource_type: 'auto',
-          allowed_formats: ['jpg', 'png', 'gif', 'webp', 'jpeg'],
-          transformation: [
-            { quality: 'auto:good' },
-            { fetch_format: 'auto' },
-            { width: 1200, crop: 'limit' }
-          ]
-        },
-        (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
-          if (error) reject(error);
-          else if (result) resolve(result);
-          else reject(new Error('No result from upload'));
+    const uploadResponse = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: 'uploads' }, // Optional: Specify folder
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
         }
       );
+
+      stream.pipe(uploadStream); // Pipe the file stream to Cloudinary
     });
 
     return NextResponse.json({
       success: true,
-      url: uploadResponse.secure_url
+      url: (uploadResponse as any).secure_url,
     });
-
   } catch (error) {
     console.error('Cloudinary upload error:', error);
     return NextResponse.json(
-      { 
+      {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to upload image'
+        error: error instanceof Error ? error.message : 'Failed to upload image',
       },
       { status: 500 }
     );
@@ -66,8 +67,6 @@ export async function POST(request: Request) {
 
 export const config = {
   api: {
-    bodyParser: {
-      sizeLimit: '5mb'
-    }
-  }
+    bodyParser: false, // Disable body parser to allow streaming
+  },
 };
