@@ -4,20 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function POST(request: NextRequest) {
   try {
     
-    let data;
-    try {
-      data = await request.json();
-      console.log('Received request data:', data);
-    } catch  {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Invalid request format' 
-        },
-        { status: 400 }
-      );
-    }
-
+    const data = await request.json();
+    
   
     if (!data || !data.uniqueBlinkId || !data.codename || !data.email || !data.solanaKey || !data.askingFee) {
       return NextResponse.json(
