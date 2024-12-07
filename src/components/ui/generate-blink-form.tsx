@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Twitter, Upload, Lock, Zap, AlertCircle, Copy, Check } from 'lucide-react'
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { generateCloudinarySignature, uploadToCloudinary } from '@/utils/cloudinary'
 
 
 const blinkFormSchema = z.object({
@@ -103,24 +104,22 @@ export default function GenerateBlinkForm() {
       let imageUrl = null
 
 
+      
       if (data.image) {
         try {
           console.log('Starting image upload...')
-          const formData = new FormData()
-          formData.append('file', data.image)
+          
+          // Get Cloudinary signature
+          const signatureData = await generateCloudinarySignature()
+          
+          // Upload directly to Cloudinary
+          const uploadResult = await uploadToCloudinary(data.image, signatureData)
 
-          const uploadResponse = await fetch('/api/cloudinary', {
-            method: 'POST',
-            body: formData,
-          })
-
-          const uploadResult = await uploadResponse.json()
-
-          if (!uploadResponse.ok || !uploadResult.success) {
-            throw new Error(uploadResult.error || 'Failed to upload image')
+          if (uploadResult.error) {
+            throw new Error(uploadResult.error.message || 'Failed to upload image')
           }
 
-          imageUrl = uploadResult.url
+          imageUrl = uploadResult.secure_url
           console.log('Image uploaded successfully:', imageUrl)
 
         } catch (uploadError) {
