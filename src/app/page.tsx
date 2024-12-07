@@ -84,7 +84,7 @@ export default function LandingPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            <div className="fixed inset-0 bg-[url('/grid.png')] opacity-20 z-0"></div>
+            <div className="fixed inset-0  opacity-20 z-0"></div>
             <div className="relative z-10">
               <header className="fixed top-0 left-0 right-0 z-40 bg-black bg-opacity-90 backdrop-blur-md border-b border-green-500">
                 <div className="container mx-auto px-4 py-4">
