@@ -109,10 +109,10 @@ export default function GenerateBlinkForm() {
         try {
           console.log('Starting image upload...')
           
-          // Get Cloudinary signature
+          
           const signatureData = await generateCloudinarySignature()
           
-          // Upload directly to Cloudinary
+        
           const uploadResult = await uploadToCloudinary(data.image, signatureData)
 
           if (uploadResult.error) {
@@ -135,37 +135,71 @@ export default function GenerateBlinkForm() {
 
       const uniqueBlinkId = `${nanoid()}`
 
-
-      const createBlinkResponse = await fetch('/api/blinks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          uniqueBlinkId,
-          codename: data.codename,
-          email: data.email.toLowerCase(),
-          solanaKey: data.solanaKey,
-          askingFee: Number(data.askingFee),
-          description: data.description || '',
-          imageUrl
-        }),
-      })
-
-      const responseData = await createBlinkResponse.json()
-
-      if (!createBlinkResponse.ok || !responseData.success) {
-        throw new Error(responseData.error || 'Failed to create blink')
+      
+      try {
+        const createBlinkResponse = await fetch('/api/blinks', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            uniqueBlinkId,
+            codename: data.codename,
+            email: data.email.toLowerCase(),
+            solanaKey: data.solanaKey,
+            askingFee: Number(data.askingFee),
+            description: data.description || '',
+            imageUrl
+          }),
+        })
+  
+        // Check response type and handle non-JSON responses
+        const contentType = createBlinkResponse.headers.get('content-type')
+        if (!createBlinkResponse.ok) {
+          let errorMessage = 'Failed to create blink'
+          try {
+            if (contentType?.includes('application/json')) {
+              const errorData = await createBlinkResponse.json()
+              errorMessage = errorData.error || errorMessage
+            } else {
+              // Handle non-JSON response
+              const textResponse = await createBlinkResponse.text()
+              console.error('Non-JSON response:', textResponse)
+              errorMessage = 'Server returned an invalid response'
+            }
+          } catch (e) {
+            console.error('Error parsing response:', e)
+            errorMessage = 'Failed to parse server response'
+          }
+          throw new Error(errorMessage)
+        }
+  
+        // Ensure we have a JSON response
+        if (!contentType?.includes('application/json')) {
+          throw new Error('Server returned an invalid response format')
+        }
+  
+        const responseData = await createBlinkResponse.json()
+  
+        if (!responseData.success) {
+          throw new Error(responseData.error || 'Failed to create blink')
+        }
+  
+        reset()
+        setGeneratedBlink(uniqueBlinkId)
+        setImagePreview(null)
+        setSubmitError(null)
+  
+      } catch (error) {
+        console.error('Blink creation error:', error)
+        throw error
       }
-
-
-      reset()
-      setGeneratedBlink(uniqueBlinkId)
-      setImagePreview(null)
-      setSubmitError(null)
-
+  
     } catch (error) {
-      console.error('Form submission error:', error)
+      console.error('Form submission error:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        error
+      })
       setSubmitError(
         error instanceof Error ? error.message : 'An unexpected error occurred'
       )
