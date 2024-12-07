@@ -1,4 +1,3 @@
-
 'use client'
 
 import { useState } from 'react'
@@ -97,79 +96,49 @@ export default function GenerateBlinkForm() {
     }
   }
 
-
-  const MAX_RETRIES = 2;
-const TIMEOUT_MS = 10000; // 10 seconds
-
-const fetchWithTimeout = async (url: string, options: RequestInit, timeout: number) => {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    return response;
-  } finally {
-    clearTimeout(timeoutId);
-  }
-};
-
-const retryFetch = async (url: string, options: RequestInit, retries = MAX_RETRIES) => {
-  try {
-    const response = await fetchWithTimeout(url, options, TIMEOUT_MS);
-    return response;
-  } catch (error) {
-    if (retries > 0 && (error instanceof Error && error.name === 'AbortError')) {
-      console.log(`Retrying request, ${retries} attempts remaining`);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
-      return retryFetch(url, options, retries - 1);
-    }
-    throw error;
-  }
-};
-
-
-
-const onSubmit = async (data: BlinkFormData) => {
-  try {
-    setSubmitError(null);
-    setIsUploading(true);
-    let imageUrl = null;
-
-    if (data.image) {
-      try {
-        console.log('Starting image upload...');
-        const signatureData = await generateCloudinarySignature();
-        const uploadResult = await uploadToCloudinary(data.image, signatureData);
-
-        if (uploadResult.error) {
-          throw new Error(uploadResult.error.message || 'Failed to upload image');
-        }
-
-        imageUrl = uploadResult.secure_url;
-        console.log('Image uploaded successfully:', imageUrl);
-
-      } catch (uploadError) {
-        console.error('Image upload error:', uploadError);
-        throw new Error(
-          uploadError instanceof Error
-            ? uploadError.message
-            : 'Failed to upload image. Please try again.'
-        );
-      }
-    }
-
-    const uniqueBlinkId = `${nanoid()}`;
-
+  const onSubmit = async (data: BlinkFormData) => {
     try {
-      console.log('Sending request to create blink...');
-      const createBlinkResponse = await retryFetch('/api/blinks', {
+      setSubmitError(null)
+      setIsUploading(true)
+      let imageUrl = null
+
+
+      
+      if (data.image) {
+        try {
+          console.log('Starting image upload...')
+          
+          
+          const signatureData = await generateCloudinarySignature()
+          
+        
+          const uploadResult = await uploadToCloudinary(data.image, signatureData)
+
+          if (uploadResult.error) {
+            throw new Error(uploadResult.error.message || 'Failed to upload image')
+          }
+
+          imageUrl = uploadResult.secure_url
+          console.log('Image uploaded successfully:', imageUrl)
+
+        } catch (uploadError) {
+          console.error('Image upload error:', uploadError)
+          throw new Error(
+            uploadError instanceof Error
+              ? uploadError.message
+              : 'Failed to upload image. Please try again.'
+          )
+        }
+      }
+
+
+      const uniqueBlinkId = `${nanoid()}`
+
+      
+      const createBlinkResponse = await fetch('/api/blinks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
         },
         body: JSON.stringify({
           uniqueBlinkId,
@@ -180,66 +149,29 @@ const onSubmit = async (data: BlinkFormData) => {
           description: data.description || '',
           imageUrl
         }),
-      });
+      })
 
-      if (!createBlinkResponse.ok) {
-        const errorText = await createBlinkResponse.text();
-        console.error('Error response:', errorText);
-        
-        if (errorText.includes('FUNCTION_INVOCATION_TIMEOUT')) {
-          throw new Error('Request timed out. Please try again.');
-        }
-        
-        let errorMessage = 'Failed to create blink';
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          errorMessage = errorText || 'Server error';
-        }
-        
-        throw new Error(errorMessage);
+      const responseData = await createBlinkResponse.json()
+
+      if (!createBlinkResponse.ok || !responseData.success) {
+        throw new Error(responseData.error || 'Failed to create blink')
       }
 
-      let responseData;
-      try {
-        const responseText = await createBlinkResponse.text();
-        responseData = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('Failed to parse response:', parseError);
-        throw new Error('Invalid server response');
-      }
 
-      if (!responseData.success) {
-        throw new Error(responseData.error || 'Operation failed');
-      }
-
-      reset();
-      setGeneratedBlink(uniqueBlinkId);
-      setImagePreview(null);
-      setSubmitError(null);
+      reset()
+      setGeneratedBlink(uniqueBlinkId)
+      setImagePreview(null)
+      setSubmitError(null)
 
     } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Request timed out. Please try again.');
-      }
-      throw error;
+      console.error('Form submission error:', error)
+      setSubmitError(
+        error instanceof Error ? error.message : 'An unexpected error occurred'
+      )
+    } finally {
+      setIsUploading(false)
     }
-
-  } catch (err) {
-    console.error('Form submission error:', {
-      type: err instanceof Error ? err.constructor.name : 'Unknown Error Type',
-      message: err instanceof Error ? err.message : String(err),
-    });
-    setSubmitError(
-      err instanceof Error 
-        ? `Error: ${err.message}` 
-        : 'An unexpected error occurred'
-    );
-  } finally {
-    setIsUploading(false);
   }
-};
 
   const handleCopyBlink = () => {
     navigator.clipboard.writeText(`http://localhost:3000/api/actions/sendMail/${generatedBlink}`).then(() => {
