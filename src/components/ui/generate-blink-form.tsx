@@ -122,7 +122,7 @@ export default function GenerateBlinkForm() {
   }
 
   const handleCopyBlink = () => {
-    navigator.clipboard.writeText(`http://localhost:3000/api/actions/sendMail/${generatedBlink}`).then(() => {
+    navigator.clipboard.writeText(`https://x-mailer.vercel.app/api/actions/sendMail/${generatedBlink}`).then(() => {
       setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
     }, (err) => {
@@ -133,7 +133,7 @@ export default function GenerateBlinkForm() {
 
   const handleTwitterShare = () => {
     const tweetText = encodeURIComponent(`Check out my X-Mailer link!`);
-    const shareUrl = `http://localhost:3000/api/actions/sendMail/${generatedBlink}`;
+    const shareUrl = `https://x-mailer.vercel.app/api/actions/sendMail/${generatedBlink}`;
     const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`;
 
     window.open(twitterShareUrl, '_blank');
@@ -346,7 +346,7 @@ export default function GenerateBlinkForm() {
           <p className="font-bold mb-2 glitch" data-text="Your Encrypted Blink:">Your Encrypted Blink:</p>
           <div className="flex items-center space-x-2">
             <code className="block p-2 bg-black bg-opacity-50 text-green-500 rounded flex-grow break-all min-h-[2.5rem] flex items-center">
-              http://localhost:3000/api/actions/sendMail/{generatedBlink}
+              https://x-mailer.vercel.app/api/actions/sendMail/{generatedBlink}
             </code>
             <Button
               onClick={handleCopyBlink}
