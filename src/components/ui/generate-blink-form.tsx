@@ -135,7 +135,7 @@ export default function GenerateBlinkForm() {
       const uniqueBlinkId = `${nanoid()}`
 
       
-      const createBlinkResponse = await fetch('${process.env.NEXT_PUBLIC_BASE_URL}/api/blinks', {
+      const createBlinkResponse = await fetch('/api/blinks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
