@@ -1,18 +1,18 @@
 'use client'
 
-import { useState } from 'react'
 import { z } from 'zod'
+import { useState } from 'react'
+import Image from "next/image"
+import { motion } from 'framer-motion'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { motion } from 'framer-motion'
-import { nanoid } from 'nanoid'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
 import { Twitter, Upload, Lock, Zap, AlertCircle, Copy, Check } from 'lucide-react'
+
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { generateCloudinarySignature, uploadToCloudinary } from '@/utils/cloudinary'
 
 
 const blinkFormSchema = z.object({
@@ -46,12 +46,13 @@ const blinkFormSchema = z.object({
 type BlinkFormData = z.infer<typeof blinkFormSchema>
 
 export default function GenerateBlinkForm() {
-  const [generatedBlink, setGeneratedBlink] = useState('')
+  const [generatedBlink, setGeneratedBlink] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isCopied, setIsCopied] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
-
+  
   const {
     control,
     handleSubmit,
@@ -64,103 +65,50 @@ export default function GenerateBlinkForm() {
       email: '',
       solanaKey: '',
       askingFee: 0,
-      description: ''
+      description: '',
     }
   })
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
     if (file) {
-      setSubmitError(null)
-
-      if (!file.type.startsWith('image/')) {
-        setSubmitError('Please upload only image files')
-        e.target.value = ''
-        return
-      }
-
-      if (file.size > 5 * 1024 * 1024) {
-        setSubmitError('Image must be 5MB or less')
-        e.target.value = ''
-        return
-      }
-
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.onerror = () => {
-        setSubmitError('Failed to read image file')
-      }
-      reader.readAsDataURL(file)
+      const imageUrl = URL.createObjectURL(file);
+      setImagePreview(imageUrl);
+      setSelectedFile(file)
     }
-  }
+  };
 
   const onSubmit = async (data: BlinkFormData) => {
+    console.log("This is the selected file -->", selectedFile)
     try {
       setSubmitError(null)
       setIsUploading(true)
-      let imageUrl = null
 
-
-      
-      if (data.image) {
-        try {
-          console.log('Starting image upload...')
-          
-          
-          const signatureData = await generateCloudinarySignature()
-          
-        
-          const uploadResult = await uploadToCloudinary(data.image, signatureData)
-
-          if (uploadResult.error) {
-            throw new Error(uploadResult.error.message || 'Failed to upload image')
-          }
-
-          imageUrl = uploadResult.secure_url
-          console.log('Image uploaded successfully:', imageUrl)
-
-        } catch (uploadError) {
-          console.error('Image upload error:', uploadError)
-          throw new Error(
-            uploadError instanceof Error
-              ? uploadError.message
-              : 'Failed to upload image. Please try again.'
-          )
-        }
-      }
-
-
-      const uniqueBlinkId = `${nanoid()}`
-
+      const formData = new FormData()
+      formData.append("codename", data.codename)
+      formData.append("email", data.email.toLowerCase())
+      formData.append("solanaKey", data.solanaKey)
+      formData.append("askingFee", data.askingFee.toString())
+      formData.append("description", data.description || '')
+      formData.append("image", selectedFile as File)
       
       const createBlinkResponse = await fetch('/api/blinks', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          uniqueBlinkId,
-          codename: data.codename,
-          email: data.email.toLowerCase(),
-          solanaKey: data.solanaKey,
-          askingFee: Number(data.askingFee),
-          description: data.description || '',
-          imageUrl
-        }),
+        body: formData
       })
 
       const responseData = await createBlinkResponse.json()
+
+      console.log("Response data from client side->",responseData)
 
       if (!createBlinkResponse.ok || !responseData.success) {
         throw new Error(responseData.error || 'Failed to create blink')
       }
 
-
       reset()
-      setGeneratedBlink(uniqueBlinkId)
+      setGeneratedBlink(responseData.blink.uniqueBlinkId)
       setImagePreview(null)
+      setSelectedFile(null)
       setSubmitError(null)
 
     } catch (error) {
@@ -184,11 +132,9 @@ export default function GenerateBlinkForm() {
   }
 
   const handleTwitterShare = () => {
-
     const tweetText = encodeURIComponent(`Check out my X-Mailer link!`);
     const shareUrl = `http://localhost:3000/api/actions/sendMail/${generatedBlink}`;
     const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`;
-
 
     window.open(twitterShareUrl, '_blank');
   };
@@ -325,11 +271,7 @@ export default function GenerateBlinkForm() {
                     value={undefined}
                     type="file"
                     accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0]
-                      onChange(file)
-                      handleFileUpload(e)
-                    }}
+                    onChange={handleFileChange}
                     className="bg-black bg-opacity-50 text-green-500 border-green-500 file:bg-green-500 file:text-black file:border-0 file:rounded-md focus:ring-green-500 focus:border-green-500"
                   />
                   <Upload className="text-green-500" />
@@ -339,9 +281,11 @@ export default function GenerateBlinkForm() {
                 )}
                 {imagePreview && (
                   <div className="mt-2">
-                    <img
+                    <Image
                       src={imagePreview}
                       alt="Image Preview"
+                      width={100}
+                      height={100}
                       className="max-w-[200px] max-h-[200px] rounded-md object-cover"
                     />
                   </div>

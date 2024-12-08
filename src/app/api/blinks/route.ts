@@ -1,13 +1,24 @@
-import { prisma } from '@/lib/prisma';
+import { nanoid } from 'nanoid'
 import { NextRequest, NextResponse } from 'next/server';
+
+import { prisma } from '@/lib/prisma';
+import { uploadImage } from '@/lib/cloudinary/config';
 
 export async function POST(request: NextRequest) {
   try {
     
-    const data = await request.json();
+    const data = await request.formData();
+    const blinkId = nanoid()
+
+    const codename = data.get("codename") as string
+    const email = data.get("email") as string
+    const solanaKey = data.get("solanaKey") as string
+    const askingFee = parseFloat(data.get("askingFee") as unknown as string)
+    const description = data.get("description") as string
+    const image = data.get("image") as File
     
-  
-    if (!data || !data.uniqueBlinkId || !data.codename || !data.email || !data.solanaKey || !data.askingFee) {
+
+    if (!data || !codename || !email || !solanaKey || !askingFee || !image) {
       return NextResponse.json(
         { 
           success: false,
@@ -16,41 +27,33 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
     
-    const existingBlink = await prisma.blink.findUnique({
-      where: {
-        uniqueBlinkId: data.uniqueBlinkId
-      }
-    });
+    const imageLink = await uploadImage(image )
+    console.log(`Image: ${imageLink}`)
 
-    if (existingBlink) {
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'A blink with this ID already exists' 
-        },
-        { status: 409 }
-      );
+    if(!imageLink){
+       return NextResponse.json({ status: 403, error: "The imagelink is not valid!"})
     }
+    
 
-  
-    const blink = await prisma.blink.create({
-      data: {
-        uniqueBlinkId: data.uniqueBlinkId,
-        codename: data.codename,
-        email: data.email,
-        solanaKey: data.solanaKey,
-        askingFee: parseFloat(data.askingFee),
-        description: data.description ?? '',
-        imageUrl: data.imageUrl ?? null
-      }
+      const newBlink = await prisma.blink.create({
+        data: {
+          uniqueBlinkId: blinkId,
+          codename, 
+          email,
+          solanaKey,
+          askingFee,
+          description: description ?? '',
+          imageUrl: imageLink
+        },
     });
 
-    return NextResponse.json({
-      success: true,
-      data: blink
-    });
+      console.log(`Blink Data: ${newBlink}`)
+
+      return NextResponse.json({
+        success: true,
+        blink: newBlink
+      });
 
   } catch (error) {
     console.error('Failed to create blink:', {
@@ -61,7 +64,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { 
         success: false,
-        error: 'Failed to create blink'
+        error: 'Failed to create blinkssssss'
       },
       { status: 500 }
     );
