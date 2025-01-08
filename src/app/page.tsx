@@ -163,7 +163,7 @@ export default function LandingPage() {
                     className="bg-green-500 hover:bg-green-600 text-black px-8 py-3 rounded-full text-lg"
                     onClick={handleInitiateSequence}
                   >
-                    Initiate Sequence
+                    Generate Blink
                   </Button>
                 </motion.section>
 

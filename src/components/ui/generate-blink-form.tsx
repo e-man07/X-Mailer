@@ -122,7 +122,7 @@ export default function GenerateBlinkForm() {
   }
 
   const handleCopyBlink = () => {
-    navigator.clipboard.writeText(`https://xmailer.xyz/api/actions/sendMail/${generatedBlink}`).then(() => {
+    navigator.clipboard.writeText(`https://dial.to/developer?url=https://xmailer.xyz/sendMail/${generatedBlink}&cluster=devnet`).then(() => {
       setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
     }, (err) => {
@@ -133,7 +133,7 @@ export default function GenerateBlinkForm() {
 
   const handleTwitterShare = () => {
     const tweetText = encodeURIComponent(`Check out my X-Mailer link!`);
-    const shareUrl = `https://xmailer.xyz/api/actions/sendMail/${generatedBlink}`;
+    const shareUrl = `https://dial.to/developer?url=https://xmailer.xyz/sendMail/${generatedBlink}&cluster=devnet`;
     const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`;
 
     window.open(twitterShareUrl, '_blank');
@@ -346,7 +346,7 @@ export default function GenerateBlinkForm() {
           <p className="font-bold mb-2 glitch" data-text="Your Encrypted Blink:">Your Encrypted Blink:</p>
           <div className="flex items-center space-x-2">
             <code className="block p-2 bg-black bg-opacity-50 text-green-500 rounded flex-grow break-all min-h-[2.5rem] flex items-center">
-              https://xmailer.xyz/api/actions/sendMail/{generatedBlink}
+            https://dial.to/developer?url=https://xmailer.xyz/sendMail/{generatedBlink}&cluster=devnet
             </code>
             <Button
               onClick={handleCopyBlink}
