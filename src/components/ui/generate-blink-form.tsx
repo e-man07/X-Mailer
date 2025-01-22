@@ -106,7 +106,7 @@ export default function GenerateBlinkForm() {
       }
 
       reset()
-      setGeneratedBlink(responseData.blink.uniqueBlinkId)
+      setGeneratedBlink(responseData.blinkId)
       setImagePreview(null)
       setSelectedFile(null)
       setSubmitError(null)
@@ -127,13 +127,12 @@ export default function GenerateBlinkForm() {
       setTimeout(() => setIsCopied(false), 2000)
     }, (err) => {
       console.error('Failed to copy text: ', err)
-      setSubmitError('Failed to copy blink. Please try again.')
     })
   }
 
   const handleTwitterShare = () => {
     const tweetText = encodeURIComponent(`Check out my X-Mailer link!`);
-    const shareUrl = `https://dial.to/developer?url=https://xmailer.xyz/sendMail/${generatedBlink}&cluster=devnet`;
+    const shareUrl = `https://xmailer.xyz/sendMail/${generatedBlink}`;
     const twitterShareUrl = `https://twitter.com/intent/tweet?text=${tweetText}&url=${encodeURIComponent(shareUrl)}`;
 
     window.open(twitterShareUrl, '_blank');
@@ -341,12 +340,12 @@ export default function GenerateBlinkForm() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-8 p-4 bg-green-500 bg-opacity-20 border border-green-500 text-green-400 rounded-md"
+          className="mt-8 p-4 bg-green-500 bg-opacity-20 border border-green-500 text-green-400 rounded-md space-y-4"
         >
           <p className="font-bold mb-2 glitch" data-text="Your Encrypted Blink:">Your Encrypted Blink:</p>
           <div className="flex items-center space-x-2">
             <code className="block p-2 bg-black bg-opacity-50 text-green-500 rounded flex-grow break-all min-h-[2.5rem] flex items-center">
-            https://xmailer.xyz/sendMail/{generatedBlink}
+              https://xmailer.xyz/sendMail/{generatedBlink}
             </code>
             <Button
               onClick={handleCopyBlink}
@@ -361,6 +360,9 @@ export default function GenerateBlinkForm() {
               <Twitter className="h-4 w-4" />
             </Button>
           </div>
+          <p className="text-sm text-green-400/70">
+            Check your email for your analytics dashboard access details.
+          </p>
         </motion.div>
       )}
     </motion.div>

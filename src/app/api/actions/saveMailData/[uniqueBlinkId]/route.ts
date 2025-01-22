@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import nodemailer from "nodemailer";
 import { NextResponse } from "next/server";
 import { Transporter, TransportOptions } from 'nodemailer';
+import { Blink, Analytics } from '@prisma/client'
 
 const CORS_HEADERS = {
   ...ACTIONS_CORS_HEADERS,
@@ -29,6 +30,10 @@ const transporter: Transporter = nodemailer.createTransport({
   },
 } as TransportOptions);
 
+type BlinkWithAnalytics = Blink & {
+  analytics: Analytics | null
+}
+
 export async function POST(req: Request) {
   try {
     const { pathname, searchParams } = new URL(req.url);
@@ -51,7 +56,10 @@ export async function POST(req: Request) {
 
     const blinkData = await prisma.blink.findUnique({
       where: { uniqueBlinkId },
-    });
+      include: {
+        analytics: true
+      }
+    }) as BlinkWithAnalytics | null;
 
     if (!blinkData) {
       return NextResponse.json(
@@ -63,6 +71,45 @@ export async function POST(req: Request) {
       );
     }
 
+    // Create or update analytics
+    if (!blinkData.analytics) {
+      // Create new analytics if it doesn't exist
+      await prisma.analytics.create({
+        data: {
+          blink: { connect: { id: blinkData.id } },
+          totalMails: 1,
+          totalVisits: 0,
+          lastVisited: new Date(),
+          earnings: blinkData.askingFee,
+          mailTimestamps: [new Date()]
+        }
+      });
+    } else {
+      // Update existing analytics
+      const currentTimestamps = blinkData.analytics.mailTimestamps || [];
+      await prisma.analytics.update({
+        where: { id: blinkData.analytics.id },
+        data: {
+          totalMails: { increment: 1 },
+          earnings: { increment: blinkData.askingFee },
+          mailTimestamps: [...currentTimestamps, new Date()],
+          updatedAt: new Date()
+        }
+      });
+    }
+
+    // Create the mail record
+    const mail = await prisma.mail.create({
+      data: {
+        senderEmail: email,
+        senderName: codename,
+        messageBody: description,
+        creatorEmail: blinkData.email,
+        blink: { connect: { id: blinkData.id } }
+      }
+    });
+
+    // Send email notifications
     const formattedMessage = `
       Dear ${blinkData.codename},
 
@@ -72,99 +119,45 @@ export async function POST(req: Request) {
 
       Best regards,
       ${codename}
-    `.trim();
-
-    const currentDate = new Date().toLocaleString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+      ${email}
+    `;
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: blinkData.email,
-      subject: `New Message from ${codename} via Your Blink`,
+      subject: `New Message from ${codename}`,
       html: `
         <div style="${emailStyles.container}">
-          <h2 style="${emailStyles.header}">You have received a new message through your Blink!</h2>
+          <div style="${emailStyles.header}">
+            <h2>You've received a new message!</h2>
+          </div>
           
           <div style="${emailStyles.messageBox}">
-            <p style="${emailStyles.metadata}"><strong>From:</strong> ${codename}</p>
-            <p style="${emailStyles.metadata}"><strong>Email:</strong> ${email}</p>
-            <p style="${emailStyles.metadata}"><strong>Sent on:</strong> ${currentDate}</p>
+            <div style="${emailStyles.metadata}">
+              <strong>From:</strong> ${codename} (${email})
+            </div>
             
             <div style="${emailStyles.message}">
-              ${formattedMessage.replace(/\n/g, '<br>')}
+              ${formattedMessage}
             </div>
           </div>
-
-          <hr style="${emailStyles.divider}">
           
-          <p style="${emailStyles.footer}">
-            This message was sent through X-Mailer.<br>
-            To respond, please contact the sender directly at ${email}
-          </p>
+          <div style="${emailStyles.footer}">
+            <p>This message was sent via X-Mailer</p>
+          </div>
         </div>
       `,
     };
 
-    const senderMailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: `Message Confirmation - Sent to ${blinkData.codename}`,
-      html: `
-        <div style="${emailStyles.container}">
-          <h2 style="${emailStyles.header}">Your message has been sent successfully!</h2>
-          
-          <p>Thank you for using Blink to contact ${blinkData.codename}.</p>
-          
-          <div style="${emailStyles.messageBox}">
-            <p style="${emailStyles.metadata}"><strong>Sent to:</strong> ${blinkData.codename}</p>
-            <p style="${emailStyles.metadata}"><strong>Sent on:</strong> ${currentDate}</p>
-            
-            <p><strong>Your message:</strong></p>
-            <div style="${emailStyles.message}">
-              ${formattedMessage.replace(/\n/g, '<br>')}
-            </div>
-          </div>
-
-          <hr style="${emailStyles.divider}">
-          
-          <p style="${emailStyles.footer}">
-            This is an automated confirmation.<br>
-            Please wait for ${blinkData.codename} to respond to your message.
-          </p>
-        </div>
-      `,
-    };
-
-    const savedMail = await prisma.mail.create({
-      data: {
-        senderEmail: email,
-        senderName: codename,
-        messageBody: formattedMessage,
-        creatorEmail: blinkData.email,
-        blink: {
-          connect: {
-            id: blinkData.id
-          }
-        }
-      },
-    });
-
+    // Send email notification
     await Promise.all([
       transporter.sendMail(mailOptions),
-      transporter.sendMail(senderMailOptions),
     ]);
 
     return NextResponse.json(
       {
         success: true,
         message: "Mail data saved and notifications sent successfully",
-        mailId: savedMail.id,
       },
       {
         status: 200,

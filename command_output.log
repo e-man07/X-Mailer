@@ -4,3 +4,8 @@ Output:
 
 Exit Code: 0
 ----
+Command: pwd
+Output:
+/home/e-man/email-blink
+Exit Code: 0
+----

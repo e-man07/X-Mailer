@@ -8,17 +8,19 @@ generator client {
 }
 
 model Blink {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  uniqueBlinkId String   @unique
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  uniqueBlinkId String     @unique
+  analyticsId   String?    @unique  // Make it optional for existing records
   codename      String
   email         String
   solanaKey     String
-  askingFee     Float      // Add this field
+  askingFee     Float
   imageUrl      String?
   description   String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt 
   mails         Mail[]
+  analytics     Analytics?
 }
 
 model Mail {
@@ -31,4 +33,18 @@ model Mail {
   creatorEmail String
   blink        Blink    @relation(fields: [blinkId], references: [id])
   blinkId      String   @db.ObjectId
+}
+
+model Analytics {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  blink            Blink     @relation(fields: [blinkId], references: [id])
+  blinkId          String    @unique @db.ObjectId
+  totalVisits      Int       @default(0)
+  totalMails       Int       @default(0)
+  lastVisited      DateTime  @default(now())
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  visitorLocations Json?     // Store visitor locations as JSON
+  mailTimestamps   DateTime[] // Array of mail received timestamps
+  earnings         Float     @default(0) // Total earnings from mails
 }
