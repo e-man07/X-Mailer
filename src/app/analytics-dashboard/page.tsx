@@ -114,7 +114,6 @@ export default function DashboardPage() {
 
     return () => clearInterval(intervalId);
   }, [analyticsId]);
-
   const handleNewSearch = () => {
     setAnalyticsData(null)
     setAnalyticsId('')
@@ -219,13 +218,13 @@ export default function DashboardPage() {
                   </p>
                   <Button
                     onClick={() => fetchAnalyticsData(analyticsId)}
-                    className="bg-green-600 text-black hover:bg-green-500 px-4"
+                    className="bg-green-600 text-black hover:bg-green-500 px-4 w-full md:w-auto"
                   >
                     Refresh Now
                   </Button>
                   <Button
                     onClick={handleNewSearch}
-                    className="bg-green-600 text-black hover:bg-green-500 px-4"
+                    className="bg-green-600 text-black hover:bg-green-500 px-4 w-full md:w-auto"
                   >
                     New Search
                   </Button>
