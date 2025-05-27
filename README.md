@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+X-Mailer
+xmailer.xyz – Email powered by Solana Blinks.
+Let anyone message you directly from Twitter without leaving the platform.
 
-## Getting Started
+<!-- Update this path if needed -->
 
-First, run the development server:
+Overview
+X-Mailer is a Web3-native communication tool that lets creators, businesses, and professionals receive emails directly through Solana Blinks. Users generate a unique Blink, post it on X (Twitter), and others can click it to instantly send an email without ever leaving the platform.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+It bridges the gap between traditional communication and the decentralized web.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Features
+Email via Solana Blinks – No forms, no redirects, no spam.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Connect your wallet – Web3-native identity with Solana.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Blink generation dashboard – Instantly create and manage your Blinks.
 
-## Learn More
+Anti-spam – Each email sent through a Blink involves a small on-chain interaction, filtering out bots.
 
-To learn more about Next.js, take a look at the following resources:
+Fully mobile optimized – Works seamlessly on desktop and mobile.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Green-hacker cyberpunk UI – Built for the bold.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+How It Works
+Connect your Solana wallet on xmailer.xyz.
 
-## Deploy on Vercel
+Enter your email address (where you want messages delivered).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Generate a unique Blink URL.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Share the Blink anywhere—especially on Twitter.
+
+Anyone clicking your Blink can send you an email through a simple interface.
+
+Built With
+Solana
+
+Solana Blinks
+
+Next.js
+
+Tailwind CSS
+
+Vercel
+
+Phantom Wallet
+
+Coming Soon
+Fee customization for sending messages
+
+Inbox dashboard for on-chain message analytics
+
+Decentralized fallback for self-hosted email handling
+
+Multi-wallet & domain linking
+
+Creator monetization features
+
+Contributing
+Pull requests and issues are welcome!
+Please fork the repo and submit a PR if you’d like to add improvements.
+
+License
+MIT License
+See LICENSE for more information.
+
+Links
+Website: https://xmailer.xyz
+
