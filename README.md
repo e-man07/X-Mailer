@@ -1,61 +1,54 @@
 # X-Mailer
 
-[![Website](https://img.shields.io/badge/Website-xmailer.xyz-0a0a0a?style=flat&logo=solana)](https://xmailer.xyz)
-[![Solana](https://img.shields.io/badge/Built%20On-Solana-3a0ca3?style=flat&logo=solana)](https://solana.com)
-[![License](https://img.shields.io/github/license/yourusername/x-mailer?color=0a0a0a&style=flat)](LICENSE)
+[![Website](https://img.shields.io/badge/Live-xmailer.xyz-0a0a0a?style=flat&logo=solana)](https://xmailer.xyz)
+[![Built with Solana](https://img.shields.io/badge/Built%20With-Solana-3a0ca3?style=flat&logo=solana)](https://solana.com)
+[![License](https://img.shields.io/github/license/e-man07/X-Mailer?color=0a0a0a)](LICENSE)
 
-> **Decentralized email meets Solana.**  
-> Generate shareable Blinks that let anyone send you an email from Twitter—no signup, no redirect.
+> **Send email directly from Twitter using Solana Blinks.**  
+> Web3-native communication. Wallet-powered identity. No signups.
 
----
+## What is X-Mailer?
 
-## Demo
-
-**Try it now at [xmailer.xyz](https://xmailer.xyz)**
-
----
+**X-Mailer** enables creators, professionals, and businesses to receive emails directly from Twitter via [Solana Blinks](https://solana.com/blinks). Just connect your wallet, enter your email, and generate a shareable Blink that anyone can use to message you—without leaving Twitter.
 
 ## Features
 
-- **Wallet-based identity** – Own your inbox with Solana.
-- **Generate Blinks** – Create an on-chain message portal.
-- **No redirects** – Users stay on Twitter while sending emails.
-- **Anti-spam filters** – On-chain actions add accountability.
-- **Mobile-first UX** – Optimized for social link sharing.
-- **Cyberpunk UI** – Hacker-themed aesthetic.
-
----
+- **Email via Solana Blinks**  
+  No forms or redirection—just instant communication.
+- **Connect with Solana Wallets**  
+  Phantom and other wallets supported.
+- **Anti-spam**  
+  Small on-chain interaction prevents bot abuse.
+- **Dark hacker-style UI**  
+  Designed for creators and developers.
+- **Mobile Optimized**  
+  Blinks work great on phones too.
 
 ## How It Works
 
-1. Visit [xmailer.xyz](https://xmailer.xyz)
-2. Connect your Solana wallet (e.g., Phantom)
-3. Enter the email address you want to receive messages at
-4. Generate a Blink (a Solana URL action)
-5. Share the Blink on Twitter or anywhere
-6. Others can now send you emails **without leaving Twitter**
-
----
+1. Go to [xmailer.xyz](https://xmailer.xyz)
+2. Connect your Solana wallet
+3. Enter the email where you want to receive messages
+4. Generate your personal **Blink**
+5. Share it on X (Twitter)
+6. Others can now email you directly from the link
 
 ## Tech Stack
 
 - **Frontend:** Next.js, Tailwind CSS, TypeScript
-- **Blockchain:** Solana Blinks, Solana Wallet Adapter
+- **Blockchain:** Solana, Solana Blinks, Wallet Adapter
 - **Deployment:** Vercel
-- **UX:** Mobile-first, cyberpunk themed interface
 
----
-
-## File Structure (example)
+## Project Structure
 
 ```bash
-x-mailer/
-├── public/                # Static assets
-├── components/            # Reusable React components
-├── pages/                 # Next.js routes
-├── lib/                   # Wallet and Solana helpers
-├── styles/                # Tailwind and global CSS
-├── utils/                 # Misc utilities
-├── .env.local.example     # Environment variables
+X-Mailer/
+├── public/              # Static assets
+├── components/          # Reusable components
+├── pages/               # App routes (Next.js)
+├── styles/              # Tailwind config and global styles
+├── utils/               # Helper functions
+├── lib/                 # Wallet/contract utilities
+├── .env.local.example   # Environment variables sample
 ├── package.json
 └── README.md
