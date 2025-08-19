@@ -17,6 +17,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="solads-site-verification" content="solads_verify_1755640973371_d61b3012c7dad6a1e0203da965374c97" />
+      </head>
       <body className={inter.className}>{children}</body>
     </html>
   )
